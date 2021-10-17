@@ -39,7 +39,7 @@ const file_se_sig file_sigs[] = {
 	  .end_sig_end = sizeof(png_end_sig)-1
      }
 };
-const size_t num_file_sigs = sizeof(file_sigs);
+const size_t num_file_sigs = sizeof(file_sigs)/sizeof(struct file_se_sig);
 
 void print_signature(FILE* outfile, const unsigned char* signature, const size_t end_index){
      for (size_t i=0; i<=end_index; i++){
@@ -71,6 +71,7 @@ int main(){
 		    //If our input character matches the next character in the file signature
 		    //Continue
 		    //Otherwise, reset the counter
+		    fprintf(stderr, "i: %ld. sig_loc_index[%ld] = %ld\n", i, i, sig_loc_index[i]);
 		    if (inc == file_sigs[i].start_sig[sig_loc_index[i]]){
 			 if (sig_loc_index[i] == file_sigs[i].start_sig_end){
 			      in_file = 1;
