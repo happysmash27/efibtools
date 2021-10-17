@@ -56,12 +56,14 @@ int main(){
      FILE* write_file;
      size_t write_sig_index;
      size_t sig_loc_index[num_file_sigs];
-     for (size_t i = 0; i<num_file_sigs; i++){
-	  sig_loc_index[i] = 0;
-     }
      size_t end_sig_loc = 0;
      //TODO: Make this still work when multiple file signatures share the same extension
      size_t files_written[num_file_sigs];
+     //Initialise all arrays of size num_file_sigs to 0
+     for (size_t i = 0; i<num_file_sigs; i++){
+	  sig_loc_index[i] = 0;
+	  files_written[i] = 0;
+     }
      while ((inc = getc(stdin)) != EOF){
 	  //Could make this support files in files
 	  //But it seems simpler and less bug-prone to just ignore indicators if we are already in a file
@@ -71,7 +73,6 @@ int main(){
 		    //If our input character matches the next character in the file signature
 		    //Continue
 		    //Otherwise, reset the counter
-		    fprintf(stderr, "i: %ld. sig_loc_index[%ld] = %ld\n", i, i, sig_loc_index[i]);
 		    if (inc == file_sigs[i].start_sig[sig_loc_index[i]]){
 			 if (sig_loc_index[i] == file_sigs[i].start_sig_end){
 			      in_file = 1;
@@ -81,7 +82,7 @@ int main(){
 							      files_written[write_sig_index],
 							      file_sigs[write_sig_index].extension);
 			      char filename[needed_name_size];
-			      snprintf(filename, needed_name_size, "%lu.%s",
+			      snprintf(filename, needed_name_size+1, "%lu.%s",
 				       files_written[write_sig_index],
 				       file_sigs[write_sig_index].extension);
 			      //Open our file
