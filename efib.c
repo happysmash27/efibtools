@@ -17,9 +17,7 @@
 */
 
 #include <stdio.h>
-
-//Max length of any signature we have
-#define MAX_SIG_LEN 8
+#include <stdlib.h>
 
 typedef struct file_se_sig {
      const char* extension;
@@ -42,9 +40,8 @@ const file_se_sig file_sigs[] = {
      }
 };
 const size_t num_file_sigs = sizeof(file_sigs);
-const unsigned char* sig_loc[sizeof(file_sigs)] = {0};
 
-void print_signature(FILE* outfile, char* signature, size_t end_index){
+void print_signature(FILE* outfile, const unsigned char* signature, const size_t end_index){
      for (size_t i=0; i<=end_index; i++){
 	  fputc(signature[i], outfile);
      }
@@ -55,14 +52,14 @@ int main(){
      //int because that's what getc gives
      int inc;
 
-     char* search_buffer[MAX_SIG_LEN];
-     char search_buf_end = 0;
-
      char in_file = 0;
      FILE* write_file;
-     char* write_file_name;
      size_t write_sig_index;
-     int end_sig_loc = 0;
+     size_t sig_loc_index[num_file_sigs];
+     for (size_t i = 0; i<num_file_sigs; i++){
+	  sig_loc_index[i] = 0;
+     }
+     size_t end_sig_loc = 0;
      //TODO: Make this still work when multiple file signatures share the same extension
      size_t files_written[num_file_sigs];
      while ((inc = getc(stdin)) != EOF){
@@ -74,16 +71,16 @@ int main(){
 		    //If our input character matches the next character in the file signature
 		    //Continue
 		    //Otherwise, reset the counter
-		    if (inc == file_sigs[i].start_sig[sig_loc[i]]){
-			 if (sig_loc[i] == file_sigs[i].start_sig_end){
+		    if (inc == file_sigs[i].start_sig[sig_loc_index[i]]){
+			 if (sig_loc_index[i] == file_sigs[i].start_sig_end){
 			      in_file = 1;
 			      write_sig_index = i;
 			      //Generate a file name
-			      int needed_name_size = snprintf(NULL, 0, "%llu.%s",
+			      int needed_name_size = snprintf(NULL, 0, "%lu.%s",
 							      files_written[write_sig_index],
 							      file_sigs[write_sig_index].extension);
 			      char filename[needed_name_size];
-			      snprintf(filename, needed_name_size, "%llu.%s",
+			      snprintf(filename, needed_name_size, "%lu.%s",
 				       files_written[write_sig_index],
 				       file_sigs[write_sig_index].extension);
 			      //Open our file
@@ -96,12 +93,12 @@ int main(){
 			      print_signature(write_file,
 					      file_sigs[write_sig_index].start_sig,
 					      file_sigs[write_sig_index].start_sig_end);
-			      sig_loc[i] = 0;
+			      sig_loc_index[i] = 0;
 			 } else {
-			      sig_loc[i]++;
+			      sig_loc_index[i]++;
 			 }
 		    } else {
-			 sig_loc[i] = 0;
+			 sig_loc_index[i] = 0;
 		    }
 	       }
 	  } else {
@@ -115,7 +112,7 @@ int main(){
 	       //Up the counter, or if we are at the end, go out of our in_file mode, reset and close things
 	       //Otherwise, just reset the file end signature location
 	       if (inc == file_sigs[write_sig_index].end_sig[end_sig_loc]){
-		    if (sig_loc[write_sig_index] == file_sigs[write_sig_index].end_sig_end){
+		    if (end_sig_loc == file_sigs[write_sig_index].end_sig_end){
 			 //Reset and close things
 			 if(fclose(write_file)){
 			      perror("Failed to close output file");
