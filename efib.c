@@ -75,9 +75,13 @@ int main(){
 		    //Otherwise, reset the counter
 		    if (inc == file_sigs[i].start_sig[sig_loc_index[i]]){
 			 if (sig_loc_index[i] == file_sigs[i].start_sig_end){
+			      fprintf(stderr, "Found a file!\n");
 			      in_file = 1;
 			      write_sig_index = i;
 			      //Generate a file name
+			      fprintf(stderr, "Writing to %lu.%s...\n",
+				      files_written[write_sig_index],
+				      file_sigs[write_sig_index].extension);
 			      int needed_name_size = snprintf(NULL, 0, "%lu.%s",
 							      files_written[write_sig_index],
 							      file_sigs[write_sig_index].extension);
@@ -91,6 +95,7 @@ int main(){
 				   perror("Couldn't open file");
 				   exit(EXIT_FAILURE);
 			      }
+			      files_written[write_sig_index]++;
 			      //Print file signature we just checked exists but did not print
 			      print_signature(write_file,
 					      file_sigs[write_sig_index].start_sig,
@@ -115,6 +120,7 @@ int main(){
 	       //Otherwise, just reset the file end signature location
 	       if (inc == file_sigs[write_sig_index].end_sig[end_sig_loc]){
 		    if (end_sig_loc == file_sigs[write_sig_index].end_sig_end){
+			 fprintf(stderr, "File has ended\n");
 			 //Reset and close things
 			 if(fclose(write_file)){
 			      perror("Failed to close output file");
